@@ -76,15 +76,24 @@
   </style>
 </head>
 <body>
-  <header>
-    <h1>FAQ Shopee Profissional</h1>
-    <div>
-      <button onclick="toggleDarkMode()">🌙 Modo Escuro</button>
-      <button onclick="abrirEstatisticas()">📊 Ver Estatísticas</button>
-      <button onclick="exportarCSV()">📥 Exportar Cliques</button>
-    </div>
-  </header>
-  <main>
+  <div id="loginContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
+    <h2>Entrar como atendente</h2>
+    <input type="text" id="nomeAtendente" placeholder="Digite seu nome..." style="padding: 10px; font-size: 16px; margin-bottom: 10px;" />
+    <button onclick="entrarAtendente()" style="padding: 10px 20px; font-size: 16px;">Entrar</button>
+  </div>
+
+  <div id="painelContainer" style="display:none;">
+    <header>
+      <h1>FAQ Shopee Profissional</h1>
+      <div>
+        <span id="nomeExibido" style="margin-right: 10px; font-weight: bold;"></span>
+        <button onclick="toggleDarkMode()">🌙 Modo Escuro</button>
+        <button onclick="abrirEstatisticas()">📊 Ver Estatísticas</button>
+        <button onclick="exportarCSV()">📥 Exportar Cliques</button>
+        <button onclick="logout()" style="background:#dc3545;color:white;">🚪 Sair</button>
+      </div>
+    </header>
+    <main>
     <input id="inputIA" oninput="sugerirResposta()" placeholder="Digite a dúvida do cliente..." style="width:100%;padding:10px;margin-bottom:20px;" />
     <div id="sugestaoIA" style="margin-bottom:20px;color:#17a2b8;font-style:italic;"></div>
 <h2>RECLAMAÇÕES</h2>
@@ -465,27 +474,6 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
     window.open(url, '_blank');
   }
 </script>
-</main>
-<body>
-  <div id="loginContainer" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;">
-    <h2>Entrar como atendente</h2>
-    <input type="text" id="nomeAtendente" placeholder="Digite seu nome..." style="padding: 10px; font-size: 16px; margin-bottom: 10px;" />
-    <button onclick="entrarAtendente()" style="padding: 10px 20px; font-size: 16px;">Entrar</button>
-  </div>
-
-  <div id="painelContainer" style="display:none;">
-    <header>
-      <h1>FAQ Shopee Profissional</h1>
-      <div>
-        <span id="nomeExibido" style="margin-right: 10px; font-weight: bold;"></span>
-        <button onclick="toggleDarkMode()">🌙 Modo Escuro</button>
-        <button onclick="abrirEstatisticas()">📊 Ver Estatísticas</button>
-        <button onclick="exportarCSV()">📥 Exportar Cliques</button>
-        <button onclick="logout()" style="background:#dc3545;color:white;">🚪 Sair</button>
-      </div>
-    </header>
-    <main>
-      <!-- (todo o conteúdo atual do painel permanece aqui) -->
     </main>
   </div>
 
@@ -539,7 +527,7 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
         const dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
         const lista = Object.entries(dados).sort((a,b)=>b[1]-a[1]).slice(0,10);
         const container = document.getElementById("statsList");
-        container.innerHTML = lista.map(item => <li><strong>${item[0]}</strong>: ${item[1]} cliques</li>).join("");
+        container.innerHTML = lista.map(item => `<li><strong>${item[0]}</strong>: ${item[1]} cliques</li>`).join("");
         document.getElementById("statsModal").style.display = "block";
       } else {
         alert("Senha incorreta.");
@@ -550,7 +538,7 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
       const dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
       let csv = "Pergunta,Cliques\n";
       for (const [pergunta, cliques] of Object.entries(dados)) {
-        csv += "${pergunta}",${cliques}\n;
+        csv += `"${pergunta}",${cliques}\n`;
       }
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
@@ -584,5 +572,7 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
       const url = "https://wa.me/?text=" + encodeURIComponent(text);
       window.open(url, '_blank');
     }
-  </script> 
+  </script>
+</main>
+</body>
 </html>
