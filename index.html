@@ -425,12 +425,19 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
     document.body.classList.add("dark");
   }
 
-  function registrarClique(perguntaId) {
+  function registrarClique(perguntaId, el = null) {
   let dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
   dados[perguntaId] = (dados[perguntaId] || 0) + 1;
   localStorage.setItem("faqClicks", JSON.stringify(dados));
   localStorage.setItem("ultimaPergunta", perguntaId);
   atualizarDashboard();
+
+  if (el) {
+    const texto = el.parentElement.querySelector("div").innerText.trim();
+    navigator.clipboard.writeText(texto)
+      .then(() => console.log("Copiado!"))
+      .catch(err => console.error("Erro ao copiar:", err));
+  }
 }
   function abrirEstatisticas() {
     const senha = prompt("Digite a senha:");
