@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>FAQ Shopee Profissional v3.0</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --text: #212529;
+      --card: #fff;
+    }
+    body.dark {
+      --bg: #212529;
+      --text: #f8f9fa;
+      --card: #343a40;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+    }
+    header {
+      background: #dc3545;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    main {
+      padding: 1rem 2rem;
+    }
+    button {
+      margin: 4px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .copyBtn, .whatsBtn {
+      background: #ffc107;
+    }
+    .resposta {
+      background: var(--card);
+      padding: 10px;
+      border-left: 4px solid #17a2b8;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    details {
+      margin-bottom: 15px;
+    }
+    #statsModal {
+      display: none;
+      position: fixed;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      background: var(--card);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 9999;
+    }
+    .closeModal {
+      float: right;
+      cursor: pointer;
+      font-size: 20px;
+      color: #dc3545;
+    }
+    .admin-section, .login-section, .dashboard-section {
+      display: none;
+      padding: 20px;
+      background: var(--card);
+      border-radius: 6px;
+      margin-top: 20px;
+    }
+    input, textarea {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FAQ Shopee Profissional v3.0</h1>
+    <div>
+      <button onclick="toggleDarkMode()">🌙 Modo Escuro</button>
+      <button onclick="abrirEstatisticas()">📊 Ver Estatísticas</button>
+      <button onclick="exportarCSV()">📥 Exportar Cliques</button>
+      <button onclick="mostrarLogin()">🔐 Login</button>
+    </div>
+  </header>
+  <main>
+    <input id="inputIA" oninput="sugerirResposta()" placeholder="Digite a dúvida do cliente..." style="width:100%;padding:10px;margin:10px 0;" />
+    <div id="sugestaoIA" style="margin-bottom:20px;color:#17a2b8;font-style:italic;"></div>
+
+    <div id="respostasContainer"></div>
+
+    <div id="statsModal"><span class="closeModal" onclick="document.getElementById('statsModal').style.display='none'">✖</span>
+      <h3>📊 Estatísticas de Cliques</h3>
+      <ul id="statsList"></ul>
+    </div>
+
+    <div class="login-section" id="loginSection">
+      <h2>🔐 Login do Atendente</h2>
+      <input type="text" id="nomeLogin" placeholder="Seu nome completo" />
+      <button onclick="logar()">Entrar</button>
+    </div>
+
+    <div class="dashboard-section" id="dashboardSection">
+      <h2>📈 Painel do Atendente</h2>
+      <p><strong>Atendente:</strong> <span id="nomeAtendenteSpan"></span></p>
+      <p><strong>Total de respostas copiadas:</strong> <span id="totalCopias">0</span></p>
+      <p><strong>Última resposta:</strong> <span id="ultimaCopia">-</span></p>
+      <button onclick="exportarPDF()">📄 Exportar PDF</button>
+    </div>
+
+    <div class="admin-section" id="adminSection">
+      <h2>🛠️ Editar FAQ</h2>
+      <textarea id="novaPergunta" placeholder="Nova pergunta"></textarea>
+      <textarea id="novaResposta" placeholder="Nova resposta"></textarea>
+      <button onclick="adicionarFAQ()">➕ Adicionar</button>
+      <ul id="listaFAQ"></ul>
+    </div>
+  </main>
+<script>
+  const senhaCorreta = "4618827";
+  const perguntasIA = ["TRIO DE CILINDRO QUEBRADO", "FALTOU TRAVAS", "REEMBOLSO", "CILINDROS", "PIX"];
+  const faqs = [];
+  let nomeAtendente = "";
+  let totalCopias = 0;
+  let ultimaResposta = "";
+
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("modoEscuro", document.body.classList.contains("dark"));
+  }
+
+  if (localStorage.getItem("modoEscuro") === "true") {
+    document.body.classList.add("dark");
+  }
+
+  function mostrarLogin() {
+    document.getElementById("loginSection").style.display = "block";
+  }
+
+  function logar() {
+    nomeAtendente = document.getElementById("nomeLogin").value.trim();
+    if (!nomeAtendente) return alert("Digite seu nome!");
+    document.getElementById("nomeAtendenteSpan").innerText = nomeAtendente;
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboardSection").style.display = "block";
+    document.getElementById("adminSection").style.display = "block";
+  }
+
+  function copiarResposta(resposta) {
+    navigator.clipboard.writeText(resposta);
+    totalCopias++;
+    ultimaResposta = resposta;
+    document.getElementById("totalCopias").innerText = totalCopias;
+    document.getElementById("ultimaCopia").innerText = resposta;
+    alert("Copiado!");
+  }
+
+  function adicionarFAQ() {
+    const p = document.getElementById("novaPergunta").value.trim();
+    const r = document.getElementById("novaResposta").value.trim();
+    if (!p || !r) return alert("Preencha os dois campos.");
+    faqs.push({ pergunta: p, resposta: r });
+    renderizarFAQ();
+    document.getElementById("novaPergunta").value = "";
+    document.getElementById("novaResposta").value = "";
+  }
+
+  function removerFAQ(i) {
+    if (confirm("Remover esta entrada?")) {
+      faqs.splice(i, 1);
+      renderizarFAQ();
+    }
+  }
+
+  function renderizarFAQ() {
+    const ul = document.getElementById("listaFAQ");
+    const container = document.getElementById("respostasContainer");
+    ul.innerHTML = "";
+    container.innerHTML = "";
+    faqs.forEach((faq, i) => {
+      const el = document.createElement("details");
+      el.innerHTML = `<summary>${faq.pergunta}</summary>
+      <div class='resposta'><div>${faq.resposta}</div>
+      <button class='copyBtn' onclick='copiarResposta("${faq.resposta}")'>📋 Copiar</button>
+      <button class='whatsBtn' onclick='shareWhatsApp("${faq.resposta}")'>📲 WhatsApp</button>
+      <button onclick='removerFAQ(${i})'>❌ Remover</button></div>`;
+      container.appendChild(el);
+      const li = document.createElement("li");
+      li.innerText = `${faq.pergunta} → ${faq.resposta}`;
+      ul.appendChild(li);
+    });
+  }
+
+  function exportarPDF() {
+    const doc = new window.jspdf.jsPDF();
+    const now = new Date();
+    doc.text("Relatório de Atendimento", 10, 10);
+    doc.text("Atendente: " + nomeAtendente, 10, 20);
+    doc.text("Data: " + now.toLocaleString(), 10, 30);
+    doc.text("Total de cópias: " + totalCopias, 10, 40);
+    doc.text("Última resposta: " + (ultimaResposta || "-"), 10, 50);
+    doc.save("relatorio-faq.pdf");
+  }
+
+  function shareWhatsApp(texto) {
+    const url = "https://wa.me/?text=" + encodeURIComponent(texto);
+    window.open(url, '_blank');
+  }
+
+  function exportarCSV() {
+    const dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
+    let csv = "Pergunta,Cliques
+";
+    for (const [pergunta, cliques] of Object.entries(dados)) {
+      csv += `"${pergunta}",${cliques}
+`;
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "faq-cliques.csv";
+    link.click();
+  }
+
+  function abrirEstatisticas() {
+    const senha = prompt("Digite a senha:");
+    if (senha === senhaCorreta) {
+      const dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
+      const lista = Object.entries(dados).sort((a,b)=>b[1]-a[1]).slice(0,10);
+      const container = document.getElementById("statsList");
+      container.innerHTML = lista.map(item => `<li><strong>${item[0]}</strong>: ${item[1]} cliques</li>`).join("");
+      document.getElementById("statsModal").style.display = "block";
+    } else {
+      alert("Senha incorreta.");
+    }
+  }
+
+  function sugerirResposta() {
+    const entrada = document.getElementById("inputIA").value.toLowerCase();
+    if (!entrada) return document.getElementById("sugestaoIA").innerHTML = "";
+    let sugestao = "";
+    let maxSim = 0;
+    perguntasIA.forEach(p => {
+      let sim = 0;
+      entrada.split(" ").forEach(pal => {
+        if (p.toLowerCase().includes(pal)) sim++;
+      });
+      if (sim > maxSim) {
+        maxSim = sim;
+        sugestao = p;
+      }
+    });
+    document.getElementById("sugestaoIA").innerHTML = sugestao ? "🔎 Pergunta mais próxima: <em>" + sugestao + "</em>" : "";
+  }
+</script>
+</body>
+</html>
