@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -96,6 +98,11 @@
     <main>
     <input id="inputIA" oninput="sugerirResposta()" placeholder="Digite a dúvida do cliente..." style="width:100%;padding:10px;margin-bottom:20px;" />
     <div id="sugestaoIA" style="margin-bottom:20px;color:#17a2b8;font-style:italic;"></div>
+      <div id="dashboard" style="margin-bottom: 20px; padding: 10px; background: var(--card); border-left: 4px solid #28a745; border-radius: 6px;">
+  <strong>📈 Dashboard:</strong>
+  <p>Total de respostas copiadas/enviadas: <span id="totalCliques">0</span></p>
+  <p>Última resposta clicada: <span id="ultimaPergunta">Nenhuma</span></p>
+</div>
 <h2>RECLAMAÇÕES</h2>
 <details>
 <summary>QUAL QUER PEÇA QUEBRADO, CLIENTE NÃO MANDOU FOTO</summary>
@@ -417,11 +424,12 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
   }
 
   function registrarClique(perguntaId) {
-    let dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
-    dados[perguntaId] = (dados[perguntaId] || 0) + 1;
-    localStorage.setItem("faqClicks", JSON.stringify(dados));
-  }
-
+  let dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
+  dados[perguntaId] = (dados[perguntaId] || 0) + 1;
+  localStorage.setItem("faqClicks", JSON.stringify(dados));
+  localStorage.setItem("ultimaPergunta", perguntaId);
+  atualizarDashboard();
+}
   function abrirEstatisticas() {
     const senha = prompt("Digite a senha:");
     if (senha === senhaCorreta) {
@@ -473,6 +481,13 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
     const url = "https://wa.me/?text=" + encodeURIComponent(text);
     window.open(url, '_blank');
   }
+  function atualizarDashboard() {
+  const dados = JSON.parse(localStorage.getItem("faqClicks") || "{}");
+  const total = Object.values(dados).reduce((a, b) => a + b, 0);
+  const ultima = localStorage.getItem("ultimaPergunta") || "Nenhuma";
+  document.getElementById("totalCliques").innerText = total;
+  document.getElementById("ultimaPergunta").innerText = ultima;
+}
 </script>
     </main>
   </div>
@@ -486,9 +501,9 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("painelContainer").style.display = "block";
         document.getElementById("nomeExibido").innerText = "👤 " + atendente;
-      }
-    });
-
+      atualizarDashboard();
+  }
+});
     function entrarAtendente() {
       const nome = document.getElementById("nomeAtendente").value.trim();
       if (nome.length < 2) {
