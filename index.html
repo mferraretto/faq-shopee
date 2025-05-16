@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FAQ Shopee Profissional</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -92,6 +93,7 @@
         <button onclick="toggleDarkMode()">🌙 Modo Escuro</button>
         <button onclick="abrirEstatisticas()">📊 Ver Estatísticas</button>
         <button onclick="exportarCSV()">📥 Exportar Cliques</button>
+        <button onclick="exportarPDF()">📄 Exportar PDF</button>
         <button onclick="logout()" style="background:#dc3545;color:white;">🚪 Sair</button>
       </div>
     </header>
@@ -587,6 +589,40 @@ CILINDRO GRANDE Altura: 80 cm Diâmetro: 50 cm Circunferência: 157 cm</div>
       const url = "https://wa.me/?text=" + encodeURIComponent(text);
       window.open(url, '_blank');
     }
+    async function exportarPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+
+  const atendente = localStorage.getItem("atendente") || "Não identificado";
+  doc.setFontSize(12);
+  doc.text(`Exportado por: ${atendente}`, 10, 10);
+
+  let y = 20;
+
+  document.querySelectorAll("details").forEach((det, i) => {
+    const summary = det.querySelector("summary")?.innerText || "";
+    const resposta = det.querySelector(".resposta")?.innerText || "";
+
+    doc.setFont(undefined, "bold");
+    doc.text(`Q: ${summary}`, 10, y);
+    y += 6;
+
+    doc.setFont(undefined, "normal");
+    const linhas = doc.splitTextToSize(`R: ${resposta}`, 180);
+    linhas.forEach(linha => {
+      if (y > 270) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.text(linha, 10, y);
+      y += 6;
+    });
+
+    y += 4;
+  });
+
+  doc.save(`faq_${atendente.replaceAll(" ", "_").toLowerCase()}.pdf`);
+}
   </script>
 </main>
 </body>
